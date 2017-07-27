@@ -1,80 +1,82 @@
 import React, { Component } from 'react';
 import './App.css';
 
+const boxMinWidth = 10;
+const boxMinHeight = 10;
+
 export default class App extends Component {
   constructor() {
     super();
 
-    this.state = { 
-      isMouseDown: false,
-      initialX: 0,
-      initialY: 0,
-      boxes: []
-    };
+    this.mouse = { };
+    this.state = { boxes: [ ] };
   }
 
   _onMouseDown = (event) => {
     event.preventDefault();
 
-    this.setState({
-      isMouseDown: true,
-      initialX: event.clientX,
-      initialY: event.clientY,
-    });
+    this.mouse.initialX = event.clientX;
+    this.mouse.initialY = event.clientY;
   }
 
   _onMouseUp = (event) => {
     event.preventDefault();
 
-    let props = {
-      x: this.state.initialX.toString() + 'px',
-      y: this.state.initialY.toString() + 'px',
-      width: (event.clientX - this.state.initialX).toString() + 'px',
-      height: (event.clientY - this.state.initialY).toString() + 'px'
-    }
-    let box = new Box(props);
+    this.mouse.finalX = event.clientX;
+    this.mouse.finalY = event.clientY;
 
-    this.setState({
-      isMouseDown: false,
-      initialX: 0,
-      initialY: 0,
-      finalX: 0,
-      finalY: 0,
-      boxes: this._updateBoxes(box)
-    });
+    let boxWidth = this._getSize(this.mouse.initialX, this.mouse.finalX, false);
+    let boxHeight = this._getSize(this.mouse.initialY, this.mouse.finalY, false);
+
+    if(boxWidth >= boxMinWidth || boxHeight >= boxMinHeight) {
+      this.setState({
+        boxes: this._updateBoxes(new Box({
+          key: this.state.boxes.length,
+          x: this._getPosition(this.mouse.initialX, this.mouse.finalX),
+          y: this._getPosition(this.mouse.initialY, this.mouse.finalY),
+          width: this._toPX(boxWidth),
+          height: this._toPX(boxHeight)
+        }))
+      });
+    }
   }
 
-  _updateBoxes = (box) => {
-    return [
-      ...this.state.boxes,
-      box
-    ];
+  _getSize = (initial, final, toPX = true) => {
+    if(initial <= final) {
+      return toPX ? this._toPX(final - initial) : final - initial;
+    }
+    else {
+      return toPX ? this._toPX(initial - final) : initial - final;
+    }
+  }
+
+  _getPosition = (initial, final, toPX = true) => {
+    if(initial <= final) {
+      return toPX ? this._toPX(initial) : initial;
+    }
+    else {
+      return toPX ? this._toPX(final) : final;
+    }
+  }
+
+  _toPX = (value) => {
+    return value.toString() + 'px';
   }
 
   _createBoxes = () => {
-    let boxes = [];
+    return this.state.boxes.map(box => box);
+  }
 
-    for(let i = 0; i < this.state.boxes.length; i++) {
-      boxes.push(this.state.boxes[i]);
-    }
-
-    return boxes;
+  _updateBoxes = (box) => {
+    return [...this.state.boxes, box];
   }
 
   render() {
-    if(this.state.isMouseDown) {
-      return (
-        <div
-          className="wh100 container"
-          onMouseUp={this._onMouseUp}>
-        </div>
-      );
-    }
-
     return (
       <div
         className="wh100 container"
-        onMouseDown={this._onMouseDown}>
+        onMouseDown={this._onMouseDown}
+        onMouseUp={this._onMouseUp}>
         {this._createBoxes()}
       </div>
     );
@@ -82,16 +84,18 @@ export default class App extends Component {
 }
 
 const Box = (props) => {
-  console.log(props);
-
   let style = {
-    position: 'absolute',
-    border: '1px solid black',
     top: props.y,
     left: props.x,
     width: props.width,
     height: props.height
   }
 
-  return <div style={style}></div>;
+  return (
+    <div
+      className="box"
+      style={style}
+      key={props.key}>
+    </div>
+  );
 }
