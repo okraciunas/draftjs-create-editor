@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import BoxEditor from './BoxEditor';
 import './App.css';
 
 const boxMinWidth = 10;
@@ -13,31 +14,35 @@ export default class App extends Component {
   }
 
   _onMouseDown = (event) => {
-    event.preventDefault();
-
-    this.mouse.initialX = event.clientX;
-    this.mouse.initialY = event.clientY;
+    if(event.target.classList.contains('container')) {
+      event.preventDefault();
+      
+      this.mouse.initialX = event.clientX;
+      this.mouse.initialY = event.clientY;
+    }
   }
 
   _onMouseUp = (event) => {
-    event.preventDefault();
+    if(event.target.classList.contains('container')) {
+      event.preventDefault();
 
-    this.mouse.finalX = event.clientX;
-    this.mouse.finalY = event.clientY;
+      this.mouse.finalX = event.clientX;
+      this.mouse.finalY = event.clientY;
 
-    let boxWidth = this._getSize(this.mouse.initialX, this.mouse.finalX, false);
-    let boxHeight = this._getSize(this.mouse.initialY, this.mouse.finalY, false);
+      let boxWidth = this._getSize(this.mouse.initialX, this.mouse.finalX, false);
+      let boxHeight = this._getSize(this.mouse.initialY, this.mouse.finalY, false);
 
-    if(boxWidth >= boxMinWidth || boxHeight >= boxMinHeight) {
-      this.setState({
-        boxes: this._updateBoxes(new Box({
-          key: this.state.boxes.length,
-          x: this._getPosition(this.mouse.initialX, this.mouse.finalX),
-          y: this._getPosition(this.mouse.initialY, this.mouse.finalY),
-          width: this._toPX(boxWidth),
-          height: this._toPX(boxHeight)
-        }))
-      });
+      if(boxWidth >= boxMinWidth && boxHeight >= boxMinHeight) {
+        this.setState({
+          boxes: this._updateBoxes({
+            x: this._getPosition(this.mouse.initialX, this.mouse.finalX),
+            y: this._getPosition(this.mouse.initialY, this.mouse.finalY),
+            width: this._toPX(boxWidth),
+            height: this._toPX(boxHeight),
+            backgroundColor: '#' + Math.round(Math.random() * 16777215).toString(16)
+          })
+        });
+      }
     }
   }
 
@@ -63,10 +68,6 @@ export default class App extends Component {
     return value.toString() + 'px';
   }
 
-  _createBoxes = () => {
-    return this.state.boxes.map(box => box);
-  }
-
   _updateBoxes = (box) => {
     return [...this.state.boxes, box];
   }
@@ -77,25 +78,19 @@ export default class App extends Component {
         className="wh100 container"
         onMouseDown={this._onMouseDown}
         onMouseUp={this._onMouseUp}>
-        {this._createBoxes()}
+        {this.state.boxes.map((props, index) => {
+          return (
+            <BoxEditor
+              key={index}
+              x={props.x}
+              y={props.y}
+              width={props.width}
+              height={props.height}
+              backgroundColor={props.backgroundColor}
+            />
+          );
+        })}
       </div>
     );
   }
-}
-
-const Box = (props) => {
-  let style = {
-    top: props.y,
-    left: props.x,
-    width: props.width,
-    height: props.height
-  }
-
-  return (
-    <div
-      className="box"
-      style={style}
-      key={props.key}>
-    </div>
-  );
 }
