@@ -1,29 +1,37 @@
-import React, { Component } from 'react';
+import React from 'react';
 import BoxEditor from './BoxEditor';
 import './App.css';
 
 const boxMinWidth = 10;
 const boxMinHeight = 10;
+const boxRef = 'editor_';
 
-export default class App extends Component {
+export default class App extends React.Component {
   constructor() {
     super();
 
+    let editors = [];
+
+    if(localStorage.getItem('editors')) {
+      editors = [...JSON.parse(localStorage.getItem('editors'))];
+    }
+
     this.mouse = { };
-    this.state = { boxes: [ ] };
+    this.state = { editors: editors };
   }
 
   _onMouseDown = (event) => {
     if(event.target.classList.contains('container')) {
       event.preventDefault();
       
+      this.mouse.isDown = true;
       this.mouse.initialX = event.clientX;
       this.mouse.initialY = event.clientY;
     }
   }
 
   _onMouseUp = (event) => {
-    if(event.target.classList.contains('container')) {
+    if(this.mouse.isDown) {
       event.preventDefault();
 
       this.mouse.finalX = event.clientX;
@@ -34,7 +42,7 @@ export default class App extends Component {
 
       if(boxWidth >= boxMinWidth && boxHeight >= boxMinHeight) {
         this.setState({
-          boxes: this._updateBoxes({
+          editors: this._updateEditors({
             x: this._getPosition(this.mouse.initialX, this.mouse.finalX),
             y: this._getPosition(this.mouse.initialY, this.mouse.finalY),
             width: this._toPX(boxWidth),
@@ -43,6 +51,8 @@ export default class App extends Component {
           })
         });
       }
+
+      this.mouse.isDown = false;
     }
   }
 
@@ -68,8 +78,25 @@ export default class App extends Component {
     return value.toString() + 'px';
   }
 
-  _updateBoxes = (box) => {
-    return [...this.state.boxes, box];
+  _updateEditors = (editor) => {
+    return [...this.state.editors, editor];
+  }
+
+  _save = () => {
+    let editors = Object.keys(this.refs)
+          .filter(ref => ref.indexOf(boxRef) >= 0)
+          .map(ref => this.refs[ref]);
+
+    this.state.editors.forEach((props, index) => {
+      props.content = editors[index].content();
+    });
+
+    localStorage.setItem('editors', JSON.stringify(this.state.editors));
+  }
+
+  _delete = () => {
+    localStorage.removeItem('editors');
+    this.setState({ editors: [] });
   }
 
   render() {
@@ -78,18 +105,30 @@ export default class App extends Component {
         className="wh100 container"
         onMouseDown={this._onMouseDown}
         onMouseUp={this._onMouseUp}>
-        {this.state.boxes.map((props, index) => {
-          return (
-            <BoxEditor
-              key={index}
-              x={props.x}
-              y={props.y}
-              width={props.width}
-              height={props.height}
-              backgroundColor={props.backgroundColor}
-            />
-          );
-        })}
+        <button
+          onClick={this._save}>
+          SALVE
+        </button>
+        <button
+          onClick={this._delete}>
+          APAGÔ
+        </button>
+        <div>
+          {this.state.editors.map((props, index) => {
+            return (
+              <BoxEditor
+                key={index}
+                ref={`${boxRef}${index}`}
+                x={props.x}
+                y={props.y}
+                width={props.width}
+                height={props.height}
+                backgroundColor={props.backgroundColor}
+                content={props.content}
+              />
+            );
+          })}
+        </div>
       </div>
     );
   }

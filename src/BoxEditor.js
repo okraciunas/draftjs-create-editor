@@ -1,19 +1,36 @@
 import React from 'react';
-import { Editor, EditorState } from 'draft-js';
+import {
+  convertFromRaw,
+  convertToRaw,
+  Editor,
+  EditorState
+} from 'draft-js';
 import './BoxEditor.css';
 
 export default class BoxEditor extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+
+    let editorState = null;
+
+    if(this.props.content) {
+      editorState = EditorState.createWithContent(convertFromRaw(JSON.parse(this.props.content)));
+    }
+    else {
+      editorState = EditorState.createEmpty();
+    }
 
     this.state = {
-      editorState: EditorState.createEmpty()
-    }
+      editorState: editorState,
+      content: ''
+    };
   }
 
   _onChange = (editorState) => {
-    this.setState({editorState});
+    this.setState({ editorState });
   }
+
+  content = () => JSON.stringify(convertToRaw(this.state.editorState.getCurrentContent()));
 
   render() {
     let style = {
