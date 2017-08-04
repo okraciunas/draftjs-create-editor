@@ -12,7 +12,9 @@ export default class Editors extends React.Component {
     }, 500);
   }
 
-  editors = () => Object.keys(this.refs).map(ref => this.refs[ref]);
+  editors = () => {
+    return Object.keys(this.refs).map(ref => this.refs[ref]);
+  }
 
   render() {
     return (

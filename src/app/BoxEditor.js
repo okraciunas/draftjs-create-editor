@@ -63,12 +63,26 @@ export default class BoxEditor extends React.Component {
     // caixa e jogar para uma outra caixa ou aumentar a própria
     // caixa.
     
-    this._boxEditorRect = this._boxEditor.getBoundingClientRect();
+    /*this._boxEditorRect = this._boxEditor.getBoundingClientRect();
     this._editorRect = this._editor.refs.editor.getBoundingClientRect();
 
     if(this._editorRect.height > this._boxEditorRect.height) {
       this.props.onFinish(this.props.index);
-    }
+    }*/
+
+    var editorState = this.state.editorState;
+
+    /*var selectionState = editorState.getSelection();
+    var anchorKey = selectionState.getAnchorKey();
+    var currentContent = editorState.getCurrentContent();
+    var currentContentBlock = currentContent.getBlockForKey(anchorKey);
+    var start = selectionState.getStartOffset();*/
+
+    const currentBlockKey = editorState.getSelection().getStartKey();
+    const currentBlockIndex = editorState.getCurrentContent().getBlockMap()
+      .keySeq().findIndex(k => k === currentBlockKey)
+
+    console.log(currentBlockKey, currentBlockIndex);
   }
 
   render() {
